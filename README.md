@@ -13,50 +13,50 @@ histories.<br>
 
 <<<<<<<< WebChat Project Usage Guide >>>>>>>>>><br>
 
-## Prerequisites<br>
-1. Node.js (v14 or later) installed on your system.<br>
-2. MongoDB Atlas account for database hosting.<br>
 
-## Steps to Use the Project<br>
+# WebChat Project Usage Guide
 
-### 1. Clone the Repository<br>
-   Open your terminal and run the following command to clone the repository:<br>
-  
-   git clone https://github.com/Manish-706/WebChat.git<br>
-  
+## Prerequisites
+1. Node.js (v14 or later) installed on your system.
+2. MongoDB Atlas account for database hosting.
 
-### 2. Navigate to the Project Directory<br>
-   Change into the project directory:<br>
-   
-   cd WebChat<br>
- 
+## Steps to Use the Project
 
-### 3. Install Dependencies<br>
-   Navigate to the backend folder and install the required dependencies:<br>
-  
-   cd backend<br>
-   npm install<br>
-  
+### 1. Clone the Repository
+   Open your terminal and run the following command to clone the repository:
+   ```bash
+   git clone https://github.com/Manish-706/WebChat.git
+   ```
+
+### 2. Navigate to the Project Directory
+   Change into the project directory:
+   ```bash
+   cd WebChat
+   ```
+
+### 3. Install Dependencies
+   Navigate to the backend folder and install the required dependencies:
+   ```bash
+   cd backend
+   npm install
+   ```
 
 ### 4. Set Up Environment Variables
-   Create a `.env` file in the `backend/src` directory and add the following variables:<br>
-   
-   SECRETE_KEY=your_secret_key<br>
-   MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.9ia9u.mongodb.net/ChatApp?retryWrites=true&w=majority<br>
- 
-   Replace `<username>` and `<password>` with your MongoDB Atlas credentials.<br>
+   Create a `.env` file in the `backend/src` directory and add the following variables:
+   ```plaintext
+   SECRETE_KEY=your_secret_key
+   MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.9ia9u.mongodb.net/ChatApp?retryWrites=true&w=majority
+   ```
+   Replace `<username>` and `<password>` with your MongoDB Atlas credentials.
 
-### 5. Start the Server<br>
-   In the `backend` directory, run the following command to start the server:<br>
- 
-   npm start<br><br>
-  
+### 5. Start the Server
+   In the `backend` directory, run the following command to start the server:
+   ```bash
+   npm start
+   ```
 
-### 6. Access the Application<br>
-   Open your browser and navigate to `http://localhost:3000` to access the WebChat application.<br>
-
-
-
+### 6. Access the Application
+   Open your browser and navigate to `http://localhost:3000` to access the WebChat application.
 
 
 
