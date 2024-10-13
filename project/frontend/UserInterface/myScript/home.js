@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const avatar = document.createElement('img');
         avatar.classList.add('chat-tile-avatar');
-        avatar.src = 'path/to/avatar'; // Set proper avatar path
+        avatar.src = "https://picsum.photos/id/103/50"; // Set proper avatar path
 
         const details = document.createElement('div');
         details.classList.add('chat-tile-details');

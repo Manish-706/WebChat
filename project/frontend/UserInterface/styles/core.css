@@ -1,12 +1,13 @@
 :root {
-  --bg-color: #111b21;
+ 
+  --bg-color: #83dcf7;
   --color-1: #06cf9c;
   --color-1: #53bdeb;
   --color-1: #00a884;
   --green: #005c4b;
   --green-secondary: #025144;
   --light-grey: #2a3942;
-  --primary: #202c33;
+  --primary: #00436a;
   --color-1: #1d282f;
   --bg-color-secondary: #182229;
   --color-1: #111b21;
@@ -14,17 +15,14 @@
   --color-1: #0b141a;
   --color-1: #0b141a59;
   --color-1: #000000b3;
-
-  --text-primary: #d1d7db;
-  --text-primary-strong: #e9edef;
-  --text-secondary: #8696a0;
-
+  --text-primary: #f9f9f9;
+  --text-primary-strong: #ffffff;
+  --text-secondary: #054c77;
   --search-input-background: var(--primary);
   --border-color: var(--light-grey);
   --compose-bg-color: var(--light-grey);
   --input-placeholder-color: var(--text-secondary);
   --dropdown-color: var(--primary);
-
   --border-radius: 0.5rem;
   --header-height: 59px;
   --footer-height: 62px;
@@ -63,7 +61,7 @@ input[type="search"] {
   outline: none;
   flex-grow: 1;
   color: var(--text-primary);
-  background-color: var(--primary);
+  background-color:rgb(214, 241, 255);
   border-radius: var(--searchbar-border-radius);
 }
 
