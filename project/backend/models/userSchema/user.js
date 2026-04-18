@@ -4,6 +4,18 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const validator = require('validator'); // Import validator for email validation
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+
+const PASSWORD_PREFIX = "pbkdf2";
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
+    const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, "sha512").toString("hex");
+    return `${PASSWORD_PREFIX}$${salt}$${hash}`;
+}
+
+function isHashedPassword(password) {
+    return typeof password === "string" && password.startsWith(`${PASSWORD_PREFIX}$`);
+}
 
 const UserSchema = new mongoose.Schema({
     username: {
@@ -42,6 +54,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    avatarSeed: {
+        type: String,
+        trim: true
+    },
     tokens: [{
         token: {
             type: String,
@@ -59,6 +75,37 @@ const UserSchema = new mongoose.Schema({
     timestamps: true // Automatically manage createdAt and updatedAt fields
 });
 
+UserSchema.pre('save', function (next) {
+    if (!this.avatarSeed) {
+        this.avatarSeed = this.phone || this.username;
+    }
+
+    if (this.isModified('password') && !isHashedPassword(this.password)) {
+        this.password = hashPassword(this.password);
+    }
+
+    next();
+});
+
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+    if (!isHashedPassword(this.password)) {
+        const matchesLegacyPassword = this.password === candidatePassword;
+        if (matchesLegacyPassword) {
+            this.password = hashPassword(candidatePassword);
+            await this.save();
+        }
+        return matchesLegacyPassword;
+    }
+
+    const [, salt, storedHash] = this.password.split("$");
+    const candidateHash = hashPassword(candidatePassword, salt).split("$")[2];
+    return crypto.timingSafeEqual(Buffer.from(storedHash, "hex"), Buffer.from(candidateHash, "hex"));
+};
+
+UserSchema.methods.setPassword = function (password) {
+    this.password = hashPassword(password);
+};
+
 UserSchema.methods.generateAuthToken = async function () {
     try {
         if (!process.env.SECRETE_KEY) {
@@ -74,5 +121,8 @@ UserSchema.methods.generateAuthToken = async function () {
         throw error;
     }
 }
+
+UserSchema.statics.hashPassword = hashPassword;
+UserSchema.statics.isHashedPassword = isHashedPassword;
 
 module.exports = mongoose.model('User', UserSchema);

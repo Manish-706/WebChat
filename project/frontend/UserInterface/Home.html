@@ -36,6 +36,7 @@
 							<img src="icons/menu.svg" alt="" class="icon">
 						</button>
 						<div class="dropdown-content">
+							<a href="#" id="open-profile">Profile settings</a>
 							<a href="#" id="deleteAccount">Delete account</a>
 							<a href="/logout">Log out</a>
 						</div>
@@ -90,12 +91,58 @@
 
 			<footer class="chat-footer">
 				<form id="message-form">
+					<select id="message-type" aria-label="Message type">
+						<option value="text">Text</option>
+						<option value="image">Image URL</option>
+						<option value="file">File URL</option>
+					</select>
 					<input type="text" id="message-input" placeholder="Write a message" autocomplete="off" required>
 					<button type="submit" id="send-button">Send</button>
 				</form>
 			</footer>
 		</section>
 	</main>
+
+	<div class="modal-backdrop hidden" id="profile-modal">
+		<section class="modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+			<button type="button" class="modal-close" id="close-profile" aria-label="Close profile settings">x</button>
+			<div class="modal-header">
+				<img src="https://robohash.org/webchat-user.png?set=set4&size=128x128" alt="Your cartoon animal avatar" class="avatar profile-preview" id="profile-preview">
+				<div>
+					<p class="eyebrow">Profile</p>
+					<h2 id="profile-title">Update your identity</h2>
+				</div>
+			</div>
+			<form id="profile-form" class="settings-form">
+				<label for="profile-username">Username</label>
+				<input type="text" id="profile-username" name="username" required>
+				<label for="profile-email">Email</label>
+				<input type="email" id="profile-email" name="email" required>
+				<label for="profile-gender">Gender</label>
+				<select id="profile-gender" name="gender" required>
+					<option value="Male">Male</option>
+					<option value="Female">Female</option>
+					<option value="Other">Other</option>
+				</select>
+				<label for="profile-age">Age</label>
+				<input type="number" id="profile-age" name="age" min="0" required>
+				<label for="profile-avatar-seed">Avatar seed</label>
+				<div class="inline-actions">
+					<input type="text" id="profile-avatar-seed" name="avatarSeed" required>
+					<button type="button" id="regenerate-avatar">Regenerate</button>
+				</div>
+				<button type="submit">Save profile</button>
+			</form>
+			<form id="password-form" class="settings-form">
+				<h3>Change password</h3>
+				<label for="current-password">Current password</label>
+				<input type="password" id="current-password" autocomplete="current-password">
+				<label for="new-password">New password</label>
+				<input type="password" id="new-password" autocomplete="new-password">
+				<button type="submit">Update password</button>
+			</form>
+		</section>
+	</div>
 
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="myScript/home.js"></script>

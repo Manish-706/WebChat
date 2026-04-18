@@ -21,7 +21,9 @@ router.post("/",async (req,res)=>{
          return res.status(404).send("User Not Found");
     }
 
-    if(password === loginuser.password){
+    const passwordMatches = await loginuser.comparePassword(password);
+
+    if(passwordMatches){
 
          const token = await loginuser.generateAuthToken(); //generating token while login
          

@@ -49,6 +49,9 @@ app.use('/Usrcontacts', sendContacts);
 const currentUser = require('../Routers/currentUser');
 app.use('/currentUser', currentUser);
 
+const profile = require('../Routers/profile');
+app.use('/profile', profile);
+
 const clearchat = require('../Routers/clearchat');
 app.use('/clearChat', clearchat);
 

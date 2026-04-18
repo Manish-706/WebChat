@@ -13,7 +13,25 @@ const MessageSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    required: true
+    default: ''
+  },
+  type: {
+    type: String,
+    enum: ['text', 'image', 'file'],
+    default: 'text'
+  },
+  mediaUrl: {
+    type: String,
+    default: ''
+  },
+  fileName: {
+    type: String,
+    default: ''
+  },
+  status: {
+    type: String,
+    enum: ['sent', 'delivered', 'seen'],
+    default: 'sent'
   },
   timestamp: {
     type: Date,
@@ -22,5 +40,7 @@ const MessageSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+MessageSchema.index({ sender: 1, receiver: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Message', MessageSchema);

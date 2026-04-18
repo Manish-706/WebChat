@@ -29,6 +29,25 @@
   white-space: pre-wrap;
 }
 
+.message-media {
+  max-width: 100%;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.message-media img {
+  max-width: min(360px, 100%);
+  display: block;
+  border-radius: var(--radius);
+}
+
+.message-media a {
+  color: var(--teal-strong);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
 .message-meta {
   align-self: flex-end;
   color: var(--muted);

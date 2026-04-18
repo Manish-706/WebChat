@@ -53,8 +53,11 @@ function initializeChatApp(app) {
 
         // When a message is sent
         socket.on('private message', async (data) => {
-            const { toPhoneNumber, message } = data;  // Get recipient's phone number and message
+            const { toPhoneNumber, message, type = 'text', mediaUrl = '', fileName = '' } = data;  // Get recipient's phone number and message
             const cleanMessage = typeof message === 'string' ? message.trim() : '';
+            const cleanMediaUrl = typeof mediaUrl === 'string' ? mediaUrl.trim() : '';
+            const cleanFileName = typeof fileName === 'string' ? fileName.trim() : '';
+            const messageType = ['text', 'image', 'file'].includes(type) ? type : 'text';
             const senderPhone = socket.userPhone || Object.keys(phoneSocketMap).find(key => phoneSocketMap[key] === socket.id);
 
             if (!senderPhone) {
@@ -62,45 +65,69 @@ function initializeChatApp(app) {
                 return;
             }
 
-            if (!toPhoneNumber || !cleanMessage) {
+            if (!toPhoneNumber || (!cleanMessage && !cleanMediaUrl)) {
                 socket.emit('message error', 'Recipient and message are required.');
                 return;
             }
 
             console.log("The selected user's phone number is " + toPhoneNumber + " and selected message: " + cleanMessage);
             const recipientSocketId = phoneSocketMap[toPhoneNumber];
+            const status = recipientSocketId ? 'delivered' : 'sent';
+            let savedMessage;
+
+            try {
+                savedMessage = await Message.create({
+                    sender: senderPhone,
+                    receiver: toPhoneNumber,
+                    message: cleanMessage,
+                    type: messageType,
+                    mediaUrl: cleanMediaUrl,
+                    fileName: cleanFileName,
+                    status
+                });
+            } catch (error) {
+                console.log("Error saving chat to the database: " + error);
+                socket.emit('message error', 'Message could not be saved.');
+                return;
+            }
+
+            const payload = {
+                id: savedMessage._id,
+                message: savedMessage.message,
+                type: savedMessage.type,
+                mediaUrl: savedMessage.mediaUrl,
+                fileName: savedMessage.fileName,
+                status: savedMessage.status,
+                createdAt: savedMessage.createdAt,
+                from: socket.id,
+                fromPhone: senderPhone,
+                toPhoneNumber
+            };
 
             // Sending message to recipient
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit('chat message', {
-                    message: cleanMessage,
-                    from: socket.id,
-                    fromPhone: senderPhone,
-                    toPhoneNumber
-                });
+                io.to(recipientSocketId).emit('chat message', payload);
                 console.log(`Message sent to ${toPhoneNumber}: ${cleanMessage}`);
             } else {
                 console.log(`User with phone number ${toPhoneNumber} is not online.`);
             }
-            
-            // Save the message to the database
-            try {
-                await Message.create({
-                    sender: senderPhone,
-                    receiver: toPhoneNumber,
-                    message: cleanMessage
-                });
-            } catch (error) {
-                console.log("Error saving chat to the database: " + error);
-            }
 
             // Optionally, send a copy of the message back to the sender
-            socket.emit('chat message', {
-                message: cleanMessage,
-                from: socket.id,
-                fromPhone: senderPhone,
-                toPhoneNumber
-            });
+            socket.emit('chat message', payload);
+        });
+
+        socket.on('typing', ({ toPhoneNumber }) => {
+            const recipientSocketId = phoneSocketMap[toPhoneNumber];
+            if (recipientSocketId && socket.userPhone) {
+                io.to(recipientSocketId).emit('typing', { fromPhone: socket.userPhone });
+            }
+        });
+
+        socket.on('stop typing', ({ toPhoneNumber }) => {
+            const recipientSocketId = phoneSocketMap[toPhoneNumber];
+            if (recipientSocketId && socket.userPhone) {
+                io.to(recipientSocketId).emit('stop typing', { fromPhone: socket.userPhone });
+            }
         });
 
         // When the user disconnects
@@ -120,11 +147,23 @@ function initializeChatApp(app) {
     // New endpoint to fetch chat messages
     app.get('/messages/:fromPhone/:toPhone', auth, async (req, res) => {
         const { fromPhone, toPhone } = req.params;
-        if (fromPhone !== req.user.phone) {
+            if (fromPhone !== req.user.phone) {
             return res.status(403).send('Forbidden');
         }
 
         try {
+            const seenResult = await Message.updateMany(
+                { sender: toPhone, receiver: fromPhone, status: { $ne: 'seen' } },
+                { $set: { status: 'seen' } }
+            );
+
+            if (seenResult.modifiedCount > 0) {
+                const senderSocketId = phoneSocketMap[toPhone];
+                if (senderSocketId) {
+                    io.to(senderSocketId).emit('messages seen', { byPhone: fromPhone });
+                }
+            }
+
             const messages = await Message.find({
                 $or: [
                     { sender: fromPhone, receiver: toPhone },
@@ -136,6 +175,47 @@ function initializeChatApp(app) {
 
         } catch (error) {
             console.error('Error fetching messages:', error);
+            res.status(500).send('Server error');
+        }
+    });
+
+    app.get('/chatSummaries', auth, async (req, res) => {
+        try {
+            const user = await User.findById(req.user._id);
+            if (!user) {
+                return res.status(404).send('User not found');
+            }
+
+            const summaries = await Promise.all(user.contacts.map(async (contact) => {
+                const lastMessage = await Message.findOne({
+                    $or: [
+                        { sender: req.user.phone, receiver: contact.phone },
+                        { sender: contact.phone, receiver: req.user.phone }
+                    ]
+                }).sort({ createdAt: -1 });
+
+                const unreadCount = await Message.countDocuments({
+                    sender: contact.phone,
+                    receiver: req.user.phone,
+                    status: { $ne: 'seen' }
+                });
+
+                return {
+                    phone: contact.phone,
+                    lastMessage: lastMessage ? {
+                        message: lastMessage.message,
+                        type: lastMessage.type,
+                        status: lastMessage.status,
+                        createdAt: lastMessage.createdAt,
+                        sender: lastMessage.sender
+                    } : null,
+                    unreadCount
+                };
+            }));
+
+            res.json(summaries);
+        } catch (error) {
+            console.error('Error fetching chat summaries:', error);
             res.status(500).send('Server error');
         }
     });

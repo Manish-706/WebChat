@@ -16,7 +16,7 @@ const auth = async (req, res, next) => {
         const verifyuser = jwt.verify(token, process.env.SECRETE_KEY); // Verify the token
 
         // Fetch the user from the database, including ID, phone, and username
-        const user = await Register.findOne({ _id: verifyuser._id }, 'phone username _id'); // Include _id
+        const user = await Register.findOne({ _id: verifyuser._id }, 'phone username avatarSeed _id'); // Include _id
         if (!user) {
             return res.status(404).send('User not found');
         }
@@ -25,7 +25,8 @@ const auth = async (req, res, next) => {
         req.user = {
             _id: user._id, // Pass user ID
             phone: user.phone,
-            username: user.username
+            username: user.username,
+            avatarSeed: user.avatarSeed
         };
 
         next();
