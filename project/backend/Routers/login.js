@@ -4,7 +4,6 @@ const Register = require("../models/userSchema/user")
 router.use(express.json());
 
 const path = require("path");
-const views_path = path.join(__dirname,"../../frontend/views");
 const list_path = path.join(__dirname,"../../frontend/UserInterface/Home.html");
 
 
@@ -18,20 +17,26 @@ router.post("/",async (req,res)=>{
      const phone = req.body.phone;
      const password = req.body.password;
      const loginuser = await  Register.findOne({phone:phone});
+    if (!loginuser) {
+         return res.status(404).send("User Not Found");
+    }
+
     if(password === loginuser.password){
 
          const token = await loginuser.generateAuthToken(); //generating token while login
          
          res.cookie("kuki",token,{
           expires:new Date(Date.now()+ 6000000),
-          //httpOnly:true
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production'
          });
          
          res.sendFile(list_path);
          console.log(`login successful mr. ${loginuser.username}`);
 
     }else{
-         res.status(404).send("User Not Found")
+         res.status(401).send("Invalid phone or password")
     } 
     }catch(error){
          res.status(404).send(`Invalid Information ${error}`)

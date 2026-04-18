@@ -1,14 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Register = require("../models/userSchema/user");
-const jwt = require("jsonwebtoken");
 const path = require("path");
 router.use(express.json());
 
-<<<<<<< HEAD
-=======
-const views_path = path.join(__dirname, "../../frontend/views/register");
->>>>>>> fc4ea91a74ec48d958326f9c756f9de5caa0ad3f
 const list_path = path.join(__dirname, "../../frontend/UserInterface/Home.html");
 
 router.get('/', (req, res) => {
@@ -20,7 +15,9 @@ router.post("/", async (req, res) => {
         const { username, phone, email, password, gender, age } = req.body;
 
         // Check if user already exists
-        const existingUser = await Register.findOne({ phone: phone });
+        const existingUser = await Register.findOne({
+            $or: [{ phone }, { email }, { username }]
+        });
         if (existingUser) {
             return res.status(400).send("User already exists");
         }
@@ -39,7 +36,9 @@ router.post("/", async (req, res) => {
         const token = await registerUser.generateAuthToken();
         res.cookie("kuki", token, {
             expires: new Date(Date.now() + 6000000),
-            // httpOnly: true // Uncomment if you want to secure the cookie
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production'
         });
 
         // Save the user to the database

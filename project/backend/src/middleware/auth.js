@@ -3,6 +3,11 @@ const Register = require("../../models/userSchema/user");
 
 const auth = async (req, res, next) => {
     try {
+        if (!process.env.SECRETE_KEY) {
+            console.error('SECRETE_KEY is missing from the environment');
+            return res.status(500).send('Server configuration error');
+        }
+
         const token = req.cookies.kuki; // Ensure the cookie exists
         if (!token) {
             return res.status(401).send('Unauthorized: No token provided');

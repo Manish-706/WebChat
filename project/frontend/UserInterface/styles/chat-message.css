@@ -1,89 +1,43 @@
-/* chat-window.css */
-
-/* Ensure chat window takes full width and height */
-#chat-window {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 60%; /* Make sure it takes full horizontal space */
-}
-
-.chat-main {
-  flex-grow: 1;
-  padding: 10px;
-  overflow-y: auto;
-  background-color: #eae7f1;
-  width: 100%; /* Ensure it takes full width */
-}
-
-/* Ensure messages-container takes full width */
-.messages-container {
-  width: 100%; /* Full width for the message container */
-  display: flex;
-  flex-direction: column;
-}
-
-/* Message styling */
 .message {
-  max-width: 430px; /* Messages can take up to 70% of the width */
-  padding: 10px 15px;
-  border-radius: 10px;
-  position: relative;
-  word-wrap: break-word;
+  max-width: min(620px, 78%);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  box-shadow: 0 8px 18px rgba(23, 33, 33, 0.06);
 }
 
 .message-received {
   align-self: flex-start;
-  background-color: #94e8ff;
-  border: 1px solid #8f8e8e;
+  background: var(--message-in);
+  border-top-left-radius: 3px;
 }
 
 .message-sent {
   align-self: flex-end;
-  background-color: #4ca6ef;
-  border: 1px solid #8f8e8e;
-}
-.chat-footer {
-  padding: 10px 20px;
-  background-color: #194877;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  background: var(--message-out);
+  border-color: rgba(15, 143, 125, 0.18);
+  border-top-right-radius: 3px;
 }
 
-#message-form {
-  display: flex;
+.message-text {
+  white-space: pre-wrap;
 }
 
-#message-input {
-  flex: 1;
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  outline: none;
-  font-size: 16px;
+.message-meta {
+  align-self: flex-end;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
-#message-input:focus {
-  border-color: #808080;
+@media (max-width: 560px) {
+  .message {
+    max-width: 92%;
+  }
 }
-
-#send-button {
-  
-  background-color: #7988de;
-  color: #ffffff;
-  border: 2px solid #7373ff;
-  height: 40px;
-  width: 70px;
-  padding: auto;
-  margin: auto;
-  margin-left: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 15px;
-  transition: background-color 0.3s ease;
-}
-
-#send-button:hover {
-  background-color: #0b26bd;
-}
-

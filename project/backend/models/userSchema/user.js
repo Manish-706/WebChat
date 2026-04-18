@@ -61,12 +61,17 @@ const UserSchema = new mongoose.Schema({
 
 UserSchema.methods.generateAuthToken = async function () {
     try {
+        if (!process.env.SECRETE_KEY) {
+            throw new Error("SECRETE_KEY is missing from the environment");
+        }
+
         const token = jwt.sign({ _id: this._id }, process.env.SECRETE_KEY); // creating token
         this.tokens = this.tokens.concat({ token: token }); // assigning to document
         await this.save(); // saving in database
         return token;  // returning to post method in register.js
     } catch (error) {
         console.log("the error part: " + error);
+        throw error;
     }
 }
 

@@ -1,23 +1,22 @@
+const path = require("path");
 require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 const express = require("express");
 const instance = express();
+const cookieParser = require("cookie-parser");
 
 const port = process.env.PORT || 3000;
 
-const initializeChatApp = require('../socket/server');  
-const { app, server } = initializeChatApp(instance);  // Extract both app and server
+instance.use(express.json());
+instance.use(cookieParser());
+instance.use(express.urlencoded({ extended: true }));
+
+const initializeChatApp = require('../socket/server');
+const { app, server } = initializeChatApp(instance);
 
 require("../db/connection"); // Connection with db
-const user = require("../models/userSchema/user");
-const message = require("../models/messageSchema/message");
-const cookieParser = require("cookie-parser");
 
-app.use(express.json());
-app.use(cookieParser());
-const jwt = require("jsonwebtoken");
-app.use(express.urlencoded({ extended: true }));
-
-const path = require("path");
 const views_path = path.join(__dirname, "../../frontend/views");
 
 app.use(express.static(path.join(__dirname, '../../frontend/UserInterface')));

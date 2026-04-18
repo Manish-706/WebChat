@@ -5,8 +5,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>WhatsApp</title>
-
+	<title>WebChat</title>
 
 	<link rel="stylesheet" href="styles/core.css">
 	<link rel="stylesheet" href="styles/style.css">
@@ -14,101 +13,92 @@
 	<link rel="stylesheet" href="styles/chat-window.css">
 	<link rel="stylesheet" href="styles/chat-tile.css">
 	<link rel="stylesheet" href="styles/chat-message.css">
-
 </head>
 
 <body>
-	<main>
-
-		<!-- Sidebar -->
-		<aside id="sidebar">
+	<main class="app-shell">
+		<aside id="sidebar" aria-label="Contacts">
 			<header id="sidebar-header">
-				<img src="https://picsum.photos/id/10/50" alt="" class="avatar" id="profile-image">
-				<div><strong id="myname" style="color: white; margin-left: -25px;">User</strong></div> 
+				<div class="profile-block">
+					<img src="" alt="Your cartoon animal avatar" class="avatar" id="profile-image">
+					<div>
+						<span class="eyebrow">Signed in</span>
+						<strong id="myname">User</strong>
+					</div>
+				</div>
+
 				<div class="toolbar">
-					<img src="icons/new-contact.svg" alt="" class="icon" id="new-contact">
-					<img src="icons/setting.svg" alt="" class="icon">
+					<button type="button" class="icon-button" id="new-contact" aria-label="Add contact">
+						<img src="icons/new-contact.svg" alt="" class="icon">
+					</button>
 					<div class="dropdown">
-						<img src="icons/menu.svg" alt="" class="icon dropdown-button">
+						<button type="button" class="icon-button dropdown-button" aria-label="Account menu">
+							<img src="icons/menu.svg" alt="" class="icon">
+						</button>
 						<div class="dropdown-content">
-							<a href="#" id="deleteAccount">Delete Account</a>
-							<a href="/logout">Log out</a>	
+							<a href="#" id="deleteAccount">Delete account</a>
+							<a href="/logout">Log out</a>
 						</div>
 					</div>
 				</div>
 			</header>
-			<form id="search-toolbar">
-				<input type="search" name="" id="search-input" placeholder="Search or start a new chat">
-				<img src="icons/filter.svg" alt="" class="icon">
+
+			<form id="search-toolbar" role="search">
+				<img src="icons/search.svg" alt="" class="search-icon">
+				<input type="search" name="search" id="search-input" placeholder="Search contacts">
 			</form>
+
 			<section id="sidebar-contents">
-				<div id="chats-list">
-					<div class="chat-tile">
-						<img src="https://picsum.photos/id/103/50" alt="" class="chat-tile-avatar">
-						<div class="chat-tile-details">
-							<div class="chat-tile-title">
-								<span>Friends 🤗</span>
-								<span>Tuesday</span>
-							</div>
-						</div>
-					</div>
-					
-				</div>
+				<div class="section-label">Conversations</div>
+				<div id="chats-list" aria-live="polite"></div>
 			</section>
 		</aside>
-		<!-- Sidebar ends -->
 
-		<!-- Chat window -->
-		<section id="chat-window">
-			<img src="../assets/default.jpeg" alt="#" id="default-image">
+		<section id="chat-window" aria-label="Current chat">
+			<div id="default-image" class="empty-state">
+				<div class="empty-avatars">
+					<img src="https://robohash.org/webchat-fox.png?set=set4&size=120x120" alt="Cartoon animal avatar">
+					<img src="https://robohash.org/webchat-otter.png?set=set4&size=120x120" alt="Cartoon animal avatar">
+					<img src="https://robohash.org/webchat-panda.png?set=set4&size=120x120" alt="Cartoon animal avatar">
+				</div>
+				<p class="eyebrow">WebChat</p>
+				<h1>Pick a contact and start talking.</h1>
+				<p class="empty-copy">Your conversations stay ready here with fast real-time messaging and playful animal avatars.</p>
+			</div>
 
 			<header id="chat-window-header">
-				<img src="https://picsum.photos/id/103/50" alt="" class="avatar" id="profile-image">
+				<img src="https://robohash.org/webchat-default.png?set=set4&size=96x96" alt="Contact cartoon animal avatar" class="avatar" id="active-chat-avatar">
 				<div id="active-chat-details">
-					<h3 id="Window_User"></h3>
-					<div id="numb"></div>
+					<h3 id="Window_User">Select a contact</h3>
+					<div id="numb">No active chat</div>
 				</div>
-				<!-- <img src="icons/search.svg" alt="" class="icon">
-				<img src="icons/clearChat.svg" alt="" class="icon" id="clear-chat"> -->
-				
+
 				<div class="dropdown">
-					<img src="icons/menu.svg" alt="" class="icon dropdown-button">
-					<div class="dropdown-content">
-						<a href="#" id="delete-contact">Delete Contact</a>
-						<a href="#" id="clear-chat">Clear Chat</a>	
+					<button type="button" class="icon-button dropdown-button" aria-label="Chat menu">
+						<img src="icons/menu.svg" alt="" class="icon">
+					</button>
+					<div class="dropdown-content dropdown-content-right">
+						<a href="#" id="delete-contact">Delete contact</a>
+						<a href="#" id="clear-chat">Clear chat</a>
 					</div>
 				</div>
 			</header>
 
-			<main class="chat-main">
-				<div class="messages-container" id="chat-messages">
-				  <!-- Incoming Messages -->
-				  <div class="message message-received">
-					<p></p>
-				  </div>
-				  <!-- Outgoing Messages -->
-				  <div class="message message-sent">
-					<p></p>
-				  </div>
-				  <!-- Additional messages will appear here -->
-				</div>
-			  </main>
+			<div class="chat-main">
+				<div class="messages-container" id="chat-messages"></div>
+			</div>
 
-			  <footer class="chat-footer">
+			<footer class="chat-footer">
 				<form id="message-form">
-				  <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off" required>
-				  <button type="submit" id="send-button">send</button>
+					<input type="text" id="message-input" placeholder="Write a message" autocomplete="off" required>
+					<button type="submit" id="send-button">Send</button>
 				</form>
-			  </footer>
-
+			</footer>
 		</section>
-		<!-- Chat window ends -->
-
 	</main>
 
-	<!-- Import Scripts -->
-	<script src="myScript/home.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
+	<script src="myScript/home.js"></script>
 </body>
 
 </html>

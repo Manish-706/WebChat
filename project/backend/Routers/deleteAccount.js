@@ -12,6 +12,7 @@ router.delete('/', auth, async (req, res) => {
         const result = await User.deleteOne({ _id: req.user._id });
 
         if (result.deletedCount > 0) {
+            res.clearCookie('kuki');
             res.status(200).sendFile(list_path);
         } else {
             res.status(404).send('Account not found');

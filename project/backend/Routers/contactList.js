@@ -7,7 +7,7 @@ const temp_path = path.join(__dirname, "../../frontend/UserInterface/Home.html")
 
 router.use(express.json());
 
-router.get('/',(req, res) => {
+router.get('/', auth, (req, res) => {
      res.sendFile(temp_path)
 });
 

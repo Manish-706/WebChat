@@ -4,126 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Form</title>
-    <style>
-        /* Reset basic styling */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-
-        /* Body Styling */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #ccc;
-        }
-
-        /* Form Container */
-        form {
-            background-color: rgb(179, 221, 255);
-            padding: 30px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow:10px 13px 0px rgba(90 186 215 / 20%);
-        }
-
-        /* Heading Style */
-        h1 {
-            color: #003d7f;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-
-        /* Label Styling */
-        label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 5px;
-            color: black;
-            
-        }
-
-        /* Input Field Styling */
-        input[type="text"],
-        input[type="phone"],
-        input[type="password"],
-        input[type="email"],
-        input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-            color: #333;
-        }
-
-        /* Button Styling */
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        /* Responsive Design */
-        @media(max-width: 500px) {
-            form {
-                padding: 20px;
-            }
-        }
-    </style>
+    <title>Register | WebChat</title>
+    <link rel="stylesheet" href="/styles/auth.css">
 </head>
 
 <body>
-    <form action="/register" method="POST" class="registration-form">
-        <h1>Register</h1>
-        
-        <!-- Username Field -->
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
+    <main class="auth-shell">
+        <section class="brand-panel">
+            <img src="https://robohash.org/webchat-register.png?set=set4&size=160x160" alt="Cartoon animal avatar">
+            <p class="eyebrow">WebChat</p>
+            <h1>Create your chat identity.</h1>
+            <p>Your profile gets a unique cartoon animal avatar after registration.</p>
+        </section>
 
-        <!-- Phone Field -->
-        <label for="phone">Phone:</label>
-        <input type="text" id="phone" name="phone" required>
+        <section class="auth-panel">
+            <form action="/Register" method="POST" class="registration-form">
+                <h1>Register</h1>
+                <p class="form-copy">Create an account to start adding contacts.</p>
 
-        <!-- Email Field -->
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username" required>
 
-        <!-- Gender Field -->
-        <label for="gender">Gender:</label>
-        <select id="gender" name="gender" required>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-        </select><br><br>
+                <label for="phone">Phone</label>
+                <input type="tel" id="phone" name="phone" autocomplete="tel" required>
 
-        <!-- Age Field -->
-        <label for="age">Age:</label>
-        <input type="number" id="age" name="age" min="0" required>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" autocomplete="email" required>
 
-        <!-- Password Field -->
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
 
-        <!-- Register Button -->
-        <button type="submit">Register</button>
-    </form>
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" min="0" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="new-password" required>
+
+                <button type="submit">Create account</button>
+                <a class="back-link" href="/">Back to welcome</a>
+            </form>
+        </section>
+    </main>
 </body>
 
 </html>

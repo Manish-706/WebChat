@@ -2,66 +2,242 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactsList = document.getElementById('chats-list');
     const addcontact = document.getElementById('new-contact');
     const myName = document.getElementById('myname');
+    const profileImage = document.getElementById('profile-image');
+    const activeChatAvatar = document.getElementById('active-chat-avatar');
     const deleteAccount = document.getElementById('deleteAccount');
+    const form = document.getElementById('message-form');
+    const input = document.getElementById('message-input');
+    const messagesContainer = document.getElementById('chat-messages');
+    const clearChat = document.getElementById('clear-chat');
+    const deleteContact = document.getElementById('delete-contact');
+    const searchInput = document.getElementById('search-input');
+    const emptyState = document.getElementById('default-image');
 
-    async function setChatPersonUsername() {
+    const socket = io();
+    let activeContact = null;
+    let currentUserPhone = null;
+    let contactsCache = [];
+    const onlineStatus = {};
+
+    function avatarUrl(seed) {
+        return `https://robohash.org/${encodeURIComponent(seed || 'webchat-user')}.png?set=set4&size=128x128`;
+    }
+
+    function formatTime(value) {
+        if (!value) {
+            return '';
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+
+        return date.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    async function setCurrentUser() {
         try {
             const response = await fetch('/currentUser', {
                 method: 'GET',
                 credentials: 'include'
             });
-            if (!response.ok) throw new Error('Failed to fetch current user phone');
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/Login';
+                }
+                throw new Error('Failed to fetch current user');
+            }
 
             const data = await response.json();
-            myName.innerText = data.username;  // Set the username
+            currentUserPhone = data.phone;
+            myName.innerText = data.username;
+            profileImage.src = avatarUrl(data.phone || data.username);
         } catch (error) {
             console.error('Error fetching current user:', error);
         }
     }
 
-    setChatPersonUsername(); // Call the function to set the chatPerson's username
-
-
-
-    // Event listner to add new contact
     addcontact.addEventListener('click', () => {
-        window.location.href = '/addcontact'; // Navigates to /addcontact endpoint when clicked
+        window.location.href = '/addcontact';
     });
 
-    //Event listner to delete Account
+    searchInput.addEventListener('input', () => {
+        renderContacts(contactsCache, searchInput.value);
+    });
+
     deleteAccount.addEventListener('click', async () => {
         const confirmation = confirm('Are you sure you want to delete your account permanently? This action cannot be undone.');
-        
-        if (confirmation) {
-            try {
-                const response = await fetch('/deleteAccount', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-    
-                if (response.ok) {
-                    alert('Your account has been deleted successfully.');
-                    // Optionally, redirect the user to a goodbye page or the home page
-                    window.location.href = '/';
-                } else {
-                    const errorMessage = await response.text();
-                    alert('Failed to delete account: ' + errorMessage);
-                }
-            } catch (error) {
-                console.error('Error deleting account:', error);
-                alert('An error occurred while deleting your account. Please try again.');
-            }
-        }
-    });    
 
-    // Function to fetch contacts from the server
+        if (!confirmation) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/deleteAccount', {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                alert('Your account has been deleted successfully.');
+                window.location.href = '/';
+            } else {
+                const errorMessage = await response.text();
+                alert('Failed to delete account: ' + errorMessage);
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            alert('An error occurred while deleting your account. Please try again.');
+        }
+    });
+
+    clearChat.addEventListener('click', async () => {
+        if (!activeContact) {
+            alert('Please select a contact first.');
+            return;
+        }
+
+        const confirmation = confirm('Are you sure you want to clear this chat?');
+        if (!confirmation) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/clearChat', {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ contactPhoneNumber: activeContact.phone }),
+            });
+
+            if (response.ok) {
+                messagesContainer.innerHTML = '';
+                alert('Chat cleared successfully!');
+            } else {
+                const errorMessage = await response.text();
+                alert('Failed to clear chat: ' + errorMessage);
+            }
+        } catch (error) {
+            console.error('Error clearing chat:', error);
+            alert('Error clearing chat. Please try again later.');
+        }
+    });
+
+    deleteContact.addEventListener('click', async () => {
+        if (!activeContact) {
+            alert('Please select a contact first.');
+            return;
+        }
+
+        const confirmation = confirm('Are you sure you want to delete this contact?');
+        if (!confirmation) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/deleteContact', {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ contactPhoneNumber: activeContact.phone }),
+            });
+
+            if (response.ok) {
+                contactsCache = contactsCache.filter(contact => contact.phone !== activeContact.phone);
+                renderContacts(contactsCache, searchInput.value);
+                messagesContainer.innerHTML = '';
+                document.getElementById('Window_User').innerText = 'Select a contact';
+                document.getElementById('numb').innerText = 'No active chat';
+                activeChatAvatar.src = avatarUrl('webchat-default');
+                activeContact = null;
+                emptyState.style.display = 'flex';
+                alert('Contact deleted successfully!');
+            } else {
+                const errorMessage = await response.text();
+                alert('Failed to delete contact: ' + errorMessage);
+            }
+        } catch (error) {
+            console.error('Error deleting contact:', error);
+            alert('Error deleting contact. Please try again later.');
+        }
+    });
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        if (!activeContact) {
+            alert('Please select a contact before sending a message.');
+            return;
+        }
+
+        const message = input.value.trim();
+        if (!message) {
+            return;
+        }
+
+        socket.emit('private message', {
+            toPhoneNumber: activeContact.phone,
+            message
+        });
+        input.value = '';
+    });
+
+    socket.on('chat message', (msg) => {
+        if (!activeContact) {
+            return;
+        }
+
+        const belongsToActiveChat = msg.fromPhone === activeContact.phone || msg.toPhoneNumber === activeContact.phone;
+        if (!belongsToActiveChat) {
+            return;
+        }
+
+        appendMessage({
+            message: msg.message,
+            className: msg.fromPhone === currentUserPhone ? 'message-sent' : 'message-received',
+            timestamp: new Date()
+        });
+    });
+
+    socket.on('user status', ({ phone, status }) => {
+        onlineStatus[phone] = status;
+        const statusText = document.querySelector(`[data-status-text="${phone}"]`);
+        const statusDot = document.querySelector(`[data-status-dot="${phone}"]`);
+
+        if (statusText) {
+            statusText.textContent = status;
+        }
+
+        if (statusDot) {
+            statusDot.classList.toggle('online', status === 'online');
+        }
+
+        if (activeContact && activeContact.phone === phone) {
+            document.getElementById('numb').innerText = `${phone} • ${status}`;
+        }
+    });
+
+    socket.on('message error', (message) => {
+        alert(message);
+    });
+
     async function fetchContacts() {
         try {
             const response = await fetch('/Usrcontacts', {
                 method: 'GET',
-                credentials: 'include', // Include cookies in the request
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -70,45 +246,82 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 if (response.status === 401) {
                     alert('Unauthorized! Please log in again.');
-                    window.location.href = '/login.html'; // Redirect to login page
-                } else {
-                    throw new Error('Failed to fetch contacts.');
+                    window.location.href = '/Login';
+                    return;
                 }
+                throw new Error('Failed to fetch contacts.');
             }
 
-            const contacts = await response.json();
-            renderContacts(contacts);
+            contactsCache = await response.json();
+            renderContacts(contactsCache);
+            fetchOnlineStatus(contactsCache);
         } catch (error) {
             console.error('Error fetching contacts:', error);
             alert('Error fetching contacts. Please try again.');
         }
     }
 
-    // Function to render contacts in the DOM
-    function renderContacts(contacts) {
-        contactsList.innerHTML = ''; // Clear existing contacts
-
-        if (contacts.length === 0) {
-            contactsList.innerHTML = '<li class="no-contacts">No contacts found.</li>';
+    async function fetchOnlineStatus(contacts) {
+        if (!contacts.length) {
             return;
         }
 
-        contacts.forEach(contact => {
+        const query = contacts
+            .map(contact => `contacts=${encodeURIComponent(contact.phone)}`)
+            .join('&');
+
+        try {
+            const response = await fetch(`/onlineStatus?${query}`, {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const statusMap = await response.json();
+            Object.assign(onlineStatus, statusMap);
+            renderContacts(contactsCache, searchInput.value);
+        } catch (error) {
+            console.error('Error fetching online status:', error);
+        }
+    }
+
+    function renderContacts(contacts, searchTerm = '') {
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+        const filteredContacts = contacts.filter(contact => {
+            const name = String(contact.username || '').toLowerCase();
+            const phone = String(contact.phone || '').toLowerCase();
+            return name.includes(normalizedSearch) || phone.includes(normalizedSearch);
+        });
+
+        contactsList.innerHTML = '';
+
+        if (filteredContacts.length === 0) {
+            contactsList.innerHTML = '<div class="no-contacts">No contacts found.</div>';
+            return;
+        }
+
+        filteredContacts.forEach(contact => {
             const chatTile = createChatTile(contact);
             contactsList.appendChild(chatTile);
         });
     }
 
-    // Function to create a chat tile element
     function createChatTile(contact) {
-        const chatTile = document.createElement('div');
+        const chatTile = document.createElement('button');
+        chatTile.type = 'button';
         chatTile.classList.add('chat-tile');
-        chatTile.setAttribute('data-phone', contact.phone); // Add the phone as a data attribute
+        chatTile.setAttribute('data-phone', contact.phone);
 
+        if (activeContact && activeContact.phone === contact.phone) {
+            chatTile.classList.add('active');
+        }
 
         const avatar = document.createElement('img');
         avatar.classList.add('chat-tile-avatar');
-        avatar.src = "https://picsum.photos/id/103/50"; // Set proper avatar path
+        avatar.alt = `${contact.username}'s cartoon animal avatar`;
+        avatar.src = avatarUrl(contact.phone || contact.username);
 
         const details = document.createElement('div');
         details.classList.add('chat-tile-details');
@@ -119,185 +332,123 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = document.createElement('span');
         name.textContent = contact.username;
 
+        const badge = document.createElement('span');
+        badge.textContent = 'Chat';
+
         const subtitle = document.createElement('div');
         subtitle.classList.add('chat-tile-subtitle');
 
-        title.appendChild(name);
+        const statusDot = document.createElement('span');
+        statusDot.classList.add('status-dot');
+        statusDot.dataset.statusDot = contact.phone;
 
+        const currentStatus = onlineStatus[contact.phone] || 'offline';
+        statusDot.classList.toggle('online', currentStatus === 'online');
+
+        const statusText = document.createElement('span');
+        statusText.dataset.statusText = contact.phone;
+        statusText.textContent = currentStatus;
+
+        title.appendChild(name);
+        title.appendChild(badge);
+        subtitle.appendChild(statusDot);
+        subtitle.appendChild(statusText);
         details.appendChild(title);
         details.appendChild(subtitle);
-
         chatTile.appendChild(avatar);
         chatTile.appendChild(details);
 
-        // Add click event to open the chat
         chatTile.addEventListener('click', () => handleChatClick(contact));
 
         return chatTile;
     }
 
-    // Handle chat tile click
     async function handleChatClick(contact) {
+        activeContact = contact;
+
         const chatPerson = document.getElementById('Window_User');
         const numb = document.getElementById('numb');
-        const DEFimage = document.getElementById('default-image');
-        DEFimage.style.display = 'none';
 
+        emptyState.style.display = 'none';
         chatPerson.innerText = contact.username;
-        numb.innerText = contact.phone;
-        const socket = io(); // Initialize Socket.IO connection
+        numb.innerText = `${contact.phone} • ${onlineStatus[contact.phone] || 'offline'}`;
+        activeChatAvatar.src = avatarUrl(contact.phone || contact.username);
 
-        const form = document.getElementById('message-form');
-        const input = document.getElementById('message-input');
-        const messagesContainer = document.getElementById('chat-messages');
-        const clearChat = document.getElementById('clear-chat');
+        renderContacts(contactsCache, searchInput.value);
 
-        // Event listener for the clear chat icon
-        clearChat.addEventListener('click', async () => {
-            const confirmation = confirm('Are you sure you want to clear all chats?'); // Ask for confirmation
-            if (confirmation) {
-                try {
-                    // Make a request to the server to clear the chat
-                    const response = await fetch('/clearChat', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ contactPhoneNumber: contact.phone }), // Send the contact phone number
-                    });
-
-                    if (response.ok) {
-                        // If the response is OK, clear the chat messages from the UI
-                        document.getElementById('chat-messages').innerHTML = '';
-                        alert('Chat cleared successfully!');
-                    } else {
-                        const errorMessage = await response.text();
-                        alert('Failed to clear chat: ' + errorMessage);
-                    }
-                } catch (error) {
-                    console.error('Error clearing chat:', error);
-                    alert('Error clearing chat. Please try again later.');
-                }
-            }
-        });
-
-
-        // Event listener for delete contact
-        const deleteContact = document.getElementById('delete-contact');  // Make sure to get the correct element for your "Delete Contact" option
-
-        deleteContact.addEventListener('click', async () => {
-            const confirmation = confirm('Are you sure you want to delete this contact?');
-            if (confirmation) {
-                try {
-                    const response = await fetch('/deleteContact', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ contactPhoneNumber: contact.phone }),  // Send the phone number of the contact to be deleted
-                    });
-
-                    if (response.ok) {
-                        // Remove the contact from the UI
-                        document.querySelector(`[data-phone="${contact.phone}"]`).remove();  // Assuming each contact has a data attribute with the phone number
-                        alert('Contact deleted successfully!');
-                    } else {
-                        const errorMessage = await response.text();
-                        alert('Failed to delete contact: ' + errorMessage);
-                    }
-                } catch (error) {
-                    console.error('Error deleting contact:', error);
-                    alert('Error deleting contact. Please try again later.');
-                }
-            }
-        });
-
-        const { phone } = contact; // Get the phone number from the contact
-
-        let currentUserPhone = await getCurrentUserPhone(); // Get the current user's phone number
-
-        // Function to auto-scroll to the bottom when a new message is added
-        function scrollToBottom() {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        if (!currentUserPhone) {
+            await setCurrentUser();
         }
 
-        // Fetch initial messages when chat is opened
-        await fetchMessages(currentUserPhone, phone);
-
-        // Send a new message when the form is submitted
-        form.addEventListener('submit', (e) => {
-            e.preventDefault(); // Prevent form refresh
-            if (input.value) {
-                socket.emit('private message', { toPhoneNumber: phone, message: input.value });
-                input.value = ''; // Clear the input field
-            }
-        });
-
-        // Listen for incoming messages
-        socket.on('chat message', (msg) => {
-            const newMessage = document.createElement('div');
-            newMessage.classList.add('message');
-            newMessage.classList.add(msg.from === socket.id ? 'message-sent' : 'message-received');
-            newMessage.innerText = msg.message;
-            messagesContainer.appendChild(newMessage);
-            scrollToBottom();
-        });
+        await fetchMessages(currentUserPhone, contact.phone);
     }
 
-    // Function to fetch messages
-    async function fetchMessages(currentUserPhone, phone) {
+    async function fetchMessages(fromPhone, toPhone) {
+        if (!fromPhone || !toPhone) {
+            return;
+        }
+
         try {
-            const response = await fetch(`/messages/${encodeURIComponent(currentUserPhone)}/${encodeURIComponent(phone)}`, {
+            const response = await fetch(`/messages/${encodeURIComponent(fromPhone)}/${encodeURIComponent(toPhone)}`, {
                 method: 'GET',
                 credentials: 'include'
             });
-            if (!response.ok) throw new Error('Failed to fetch messages');
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch messages');
+            }
 
             const messages = await response.json();
-            renderMessages(messages, currentUserPhone);
+            renderMessages(messages, fromPhone);
         } catch (error) {
             console.error('Error fetching messages:', error);
         }
     }
 
-    // Function to render messages in the DOM
-    function renderMessages(messages, currentUserPhone) {
-        const messagesContainer = document.getElementById('chat-messages');
-        messagesContainer.innerHTML = ''; // Clear existing messages
+    function renderMessages(messages, userPhone) {
+        messagesContainer.innerHTML = '';
 
         messages.forEach(msg => {
-            const newMessage = document.createElement('div');
-            newMessage.classList.add('message');
-            newMessage.classList.add(msg.sender === currentUserPhone ? 'message-sent' : 'message-received');
-            newMessage.innerText = msg.message;
-            messagesContainer.appendChild(newMessage);
+            appendMessage({
+                message: msg.message,
+                className: msg.sender === userPhone ? 'message-sent' : 'message-received',
+                timestamp: msg.createdAt || msg.timestamp
+            });
         });
 
-        scrollToBottom(); // Scroll to the bottom after rendering messages
+        scrollToBottom();
     }
 
-    // Function to get the current user's phone number
-    async function getCurrentUserPhone() {
-        try {
-            const response = await fetch('/currentUser', {
-                method: 'GET',
-                credentials: 'include'
-            });
-            if (!response.ok) throw new Error('Failed to fetch current user phone');
+    function appendMessage({ message, className, timestamp }) {
+        const newMessage = document.createElement('div');
+        newMessage.classList.add('message', className);
 
-            const data = await response.json();
-            return data.phone; // Return the current user's phone number
-        } catch (error) {
-            console.error('Error fetching current user phone:', error);
+        const text = document.createElement('div');
+        text.classList.add('message-text');
+        text.innerText = message;
+
+        const meta = document.createElement('div');
+        meta.classList.add('message-meta');
+        meta.innerText = formatTime(timestamp);
+
+        newMessage.appendChild(text);
+        if (meta.innerText) {
+            newMessage.appendChild(meta);
         }
+
+        messagesContainer.appendChild(newMessage);
+        scrollToBottom();
     }
 
-    // Auto-scroll to the bottom of the chat window
     function scrollToBottom() {
-        const messagesContainer = document.getElementById('chat-messages');
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // Initial fetch of contacts
-    fetchContacts();
+    async function initialize() {
+        profileImage.src = avatarUrl('webchat-user');
+        await setCurrentUser();
+        await fetchContacts();
+    }
+
+    initialize();
 });
