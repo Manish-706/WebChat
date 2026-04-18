@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Chat App</title>
+    <style>
+        /* General styles for body and background */
+        body {
+            margin: 0;
+    padding: 0px;
+    width: 100%;
+    font-family: 'Arial', sans-serif;
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #a7ccff;
+    text-align: center;
+    overflow: hidden;
+        }
+
+        /* Container for the content */
+        .container{
+            padding: 0px;
+        }
+        .container img{
+            width: 400px;
+        }
+        .welcome-container {
+            background-color: rgb(255 255 255);
+    padding: 40px;
+    border-radius: 0px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    max-width: 400px;
+    z-index: 1;
+        }
+
+        /* Header styling */
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            font-family:Arial, Helvetica, sans-serif;
+            color: #47475e;
+        }
+
+        /* Button styles */
+        .btn {
+            display: block;
+            width: 100%;
+            margin: 15px 0;
+            padding: 12px;
+            font-size: 1.2em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        /* Button styles for different buttons */
+        .btn.login {
+            background-color: #007bff;
+        }
+
+        .btn.login:hover {
+            background-color: #0056b3;
+        }
+
+        .btn.registration {
+            background-color: #007bff;
+        }
+
+        .btn.registration:hover {
+            background-color: #0056b3;
+        }
+
+        .btn.addcontacts {
+            background-color: #dc3545;
+        }
+
+        .btn.addcontacts:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    </div>
+    <div class="welcome-container">
+        <h1>   Welcome!   </h1>
+        <h1>To Webchat</h1>
+        <button class="btn login" id="login-btn">Login</button>
+        <button class="btn registration" id="register-btn">Register</button>
+    </div>
+    <div class="container">
+    </div>
+
+    <script>
+        // Handle the login button click
+        document.getElementById('login-btn').addEventListener('click', function() {
+            window.location.href = '/login';  // Redirect to the login page
+        });
+
+        // Handle the registration button click
+        document.getElementById('register-btn').addEventListener('click', function() {
+            window.location.href = '/register';  // Redirect to the registration page
+        });
+
+    </script>
+</body>
+</html>

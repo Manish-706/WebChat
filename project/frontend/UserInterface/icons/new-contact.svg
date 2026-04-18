@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+  <!-- Filled Person Icon -->
+  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 14c1.656 0 3 1.344 3 3v3H5v-3c0-1.656 1.344-3 3-3h8zm-4-6a4 4 0 100-8 4 4 0 000 8z" />
+  <!-- Plus Icon -->
+  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9v7m4-3.5h-7" />
+</svg>
