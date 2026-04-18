@@ -4,6 +4,7 @@ const Register = require("../models/userSchema/user")
 router.use(express.json());
 
 const path = require("path");
+const views_path = path.join(__dirname,"../../frontend/views");
 const list_path = path.join(__dirname,"../../frontend/UserInterface/Home.html");
 
 

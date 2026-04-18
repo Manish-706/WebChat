@@ -5,6 +5,10 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 router.use(express.json());
 
+<<<<<<< HEAD
+=======
+const views_path = path.join(__dirname, "../../frontend/views/register");
+>>>>>>> fc4ea91a74ec48d958326f9c756f9de5caa0ad3f
 const list_path = path.join(__dirname, "../../frontend/UserInterface/Home.html");
 
 router.get('/', (req, res) => {
